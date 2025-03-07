@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delta Maresias Club</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #64b3f4, #e0c3fc);
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        h2, h3 {
+            color: #fff;
+            font-weight: 700;
+        }
+        .container {
+            width: 100%;
+            max-width: 400px;
+            margin: 50px auto;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0px 4px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            animation: fadeIn 1s ease-in-out;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        input[type="date"], select {
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .form-header {
+            margin-bottom: 20px;
+        }
+        .form-footer {
+            font-size: 14px;
+            color: #777;
+            margin-top: 15px;
+        }
+        #message {
+            color: #ff4c4c;
+            font-weight: bold;
+        }
+        #login-form {
+            display: block;
+        }
+        #request-form {
+            display: none;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Styling for icons */
+        .icon {
+            font-size: 50px;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        #informacoes_terceiro {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="login-form">
+            <div class="form-header">
+                <h3 style="font-size: 24px; font-weight: 700; color: #4CAF50;">Delta Maresias Club</h3>
+                <i class="icon">🌊</i>
+                <h3>Entrar ou Registrar</h3>
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" placeholder="Digite seu e-mail" required>
+            </div>
+
+            <div class="form-group">
+                <label for="nome">Nome do Proprietário (cessionário)</label>
+                <input type="text" id="nome" placeholder="Digite o nome" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" placeholder="Digite a senha" required>
+            </div>
+
+            <button onclick="register()">Registrar</button>
+            <button onclick="login()">Entrar</button>
+            <p id="message"></p>
+        </div>
+
+        <div id="request-form">
+            <div class="form-header">
+                <h3 style="font-size: 24px; font-weight: 700; color: #4CAF50;">Delta Maresias Club: Solicitação Oficial de Uso ou Aluguel das Semanas de Propriedade</h3>
+                <p style="font-size: 16px; color: #444;">Por favor, preencha este formulário para oficializar o uso ou aluguel de suas semanas no Delta Maresias Club. Suas informações serão registradas para futuras consultas ao clube.</p>
+            </div>
+            <form id="form">
+                <div class="form-group">
+                    <label for="semana">Semana Disponível</label>
+                    <select id="semana" required>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="data_inicio">Data de Início</label>
+                    <input type="date" id="data_inicio" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="data_fim">Data de Fim</label>
+                    <input type="date" id="data_fim" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tipo_uso">Tipo de Uso</label>
+                    <select id="tipo_uso" required onchange="toggleTerceiroInfo()">
+                        <option value="reservar">Reservar para uso pessoal</option>
+                        <option value="ceder">Ceder a terceiros</option>
+                        <option value="disponivel">Disponível para aluguel</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="informacoes_terceiro">
+                    <label for="terceiro_nome">Informações Completas do Terceiro</label>
+                    <input type="text" id="terceiro_nome" placeholder="Digite as informações do terceiro">
+                </div>
+
+                <button type="submit">Enviar Solicitação</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const apiUrl = "https://script.google.com/macros/s/AKfycbyrLu176kPwED8D0vEWvHxVGJQmDzmJ2ohAc8XEUN2oYB46rkJV44hlWhwCiz_yd_xT/exec";
+
+        // Load available weeks
+        fetch(`${apiUrl}?action=load_weeks`)
+            .then(res => res.json())
+            .then(data => {
+                const semanaSelect = document.getElementById("semana");
+                data.weeks.forEach(week => {
+                    const option = document.createElement("option");
+                    option.value = week;
+                    option.textContent = week;
+                    semanaSelect.appendChild(option);
+                });
+            });
+
+        // Register user
+        function register() {
+            let email = document.getElementById("email").value;
+            let nome = document.getElementById("nome").value;
+            let password = document.getElementById("password").value;
+            
+            fetch(`${apiUrl}?action=register&email=${email}&nome=${nome}&password=${password}`)
+                .then(res => res.text())
+                .then(data => {
+                    document.getElementById("message").innerText = data;
+                });
+        }
+
+        // Login user
+        function login() {
+            let email = document.getElementById("email").value;
+            let password = document.getElementById("password").value;
+            
+            fetch(`${apiUrl}?action=login&email=${email}&password=${password}`)
+                .then(res => res.text())
+                .then(data => {
+                    if (data.includes("Sucesso")) {
+                        document.getElementById("login-form").style.display = "none";
+                        document.getElementById("request-form").style.display = "block";
+                    } else {
+                        document.getElementById("message").innerText = data;
+                    }
+                });
+        }
+
+        // Submit request form
+        document.getElementById("form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const semana = document.getElementById("semana").value;
+            const data_inicio = document.getElementById("data_inicio").value;
+            const data_fim = document.getElementById("data_fim").value;
+            const tipo_uso = document.getElementById("tipo_uso").value;
+            const terceiro_nome = tipo_uso === "ceder" ? document.getElementById("terceiro_nome").value : "";
+
+            fetch(`${apiUrl}?action=submit_form&semana=${semana}&data_inicio=${data_inicio}&data_fim=${data_fim}&tipo_uso=${tipo_uso}&terceiro_nome=${terceiro_nome}`)
+                .then(res => res.text())
+                .then(data => alert(data));
+        });
+
+        // Toggle third-party info visibility
+        function toggleTerceiroInfo() {
+            const tipoUso = document.getElementById("tipo_uso").value;
+            const informacoesTerceiro = document.getElementById("informacoes_terceiro");
+            if (tipoUso === "ceder") {
+                informacoesTerceiro.style.display = "block";
+            } else {
+                informacoesTerceiro.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
